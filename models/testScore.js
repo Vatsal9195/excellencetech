@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
-
+// Test Score Model
 const testScoreSchema = new Schema({
     firstRound: { type: Number, required: true },
     secondRound: { type: Number, required: true },
