@@ -11,4 +11,7 @@ router.post('/addCandidate',
         check('email').normalizeEmail().isEmail()
     ], CandidateController.addCandidate);
 
+router.get('/', CandidateController.getCandidates);
+
+
 module.exports = router;

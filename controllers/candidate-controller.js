@@ -3,6 +3,22 @@ const HttpError = require('../models/http-error');
 const Candidate = require('../models/candidate');
 const { validationResult } = require('express-validator');
 
+//Get request for getting all candidates
+
+const getCandidates = async (req,res,next) =>{
+    
+    let candidates;
+    try {
+        candidates = await Candidate.find();
+    } catch (err) {
+        return next(new HttpError('something went wrong, try agian', 500));
+    }
+
+    res.status(201).json({ candidates: candidates});
+    
+}
+
+
 //post request for creating candidate
 
 const addCandidate = async (req, res, next) => {
@@ -42,3 +58,4 @@ const addCandidate = async (req, res, next) => {
 
 
 exports.addCandidate = addCandidate;
+exports.getCandidates = getCandidates;

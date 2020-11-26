@@ -25,6 +25,7 @@ const addScore = async (req, res, next) => {
     // if (!existingCandidate) {
     //     return next(new HttpError('Candidate does not exist', 422));
     // }
+
     console.log();
     const testScore = new TestScore({
         firstRound,
@@ -34,14 +35,18 @@ const addScore = async (req, res, next) => {
         candidate
     });
 
-    let existingCandidate;
-    try{
-        existingCandidate = Candidate.findById(candidate);
-    }catch(err){
+    let existingCandidate, existingScore;
+    try {
+        existingCandidate = await Candidate.findById(candidate);
+        existingScore = await TestScore.findOne({ candidate: candidate });
+    } catch (err) {
         return next(new HttpError('Assigning of test score failed', 500));
     }
-    if(!existingCandidate){
+    if (!existingCandidate) {
         return next(new HttpError('Could not find Candidate', 404));
+    }
+    if (existingScore) {
+        return next(new HttpError('Candidate Test Score already exist', 422));
     }
 
     try {
@@ -54,5 +59,54 @@ const addScore = async (req, res, next) => {
 
 }
 
+//Get highest Scoring candidate
+
+const highestScoreCandidate = async (req, res, next) => {
+    let scores, highestScoreId;
+    try {
+        scores = await TestScore.find();
+        highestScoreId = scores.reduce((prev, current) => (prev.totalScore > current.totalScore) ? prev : current);
+    }
+    catch (err) {
+        return next(new HttpError('something went wrong, try agian', 500));
+    }
+
+    let candidate;
+    try {
+        candidate = await Candidate.findById(highestScoreId.candidate);
+    } catch (err) {
+        return next(new HttpError('something went wrong, try agian', 500));
+    }
+
+    res.status(201).json({ highestScoringCandidate: { candidate: candidate, testScore: highestScoreId } });
+
+}
+
+//get average score for each round 
+
+const avgScore = async (req, res, next) => {
+
+    let scores, firstAvg = 0, secondAvg = 0, thirdAvg = 0;
+    try {
+        scores = await TestScore.find();
+        scores.map((score) => {
+            firstAvg = (firstAvg + score.firstRound),
+                secondAvg = (secondAvg + score.secondRound),
+                thirdAvg = (thirdAvg + score.thirdRound)
+        });
+    }
+    catch (err) {
+        return next(new HttpError('something went wrong, try agian', 500));
+    }
+
+    res.status(201).json({
+        firstRoundAvg: firstAvg / scores.length,
+        secondRoundAvg: secondAvg / scores.length,
+        thirdRoundAvg: thirdAvg / scores.length
+    });
+}
+
 
 exports.addScore = addScore;
+exports.highestScoreCandidate = highestScoreCandidate;
+exports.avgScore = avgScore;
